@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agent Evals App</title>
+  <link rel="preconnect" href="https://api.fontshare.com">
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./src/styles/tokens.css" />
+  <link rel="stylesheet" href="./src/styles/base.css" />
+  <link rel="stylesheet" href="./src/styles/components.css" />
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script type="module" src="./src/main.js"></script>
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to content</a>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Primary">
+      <div class="logo">
+        <div class="logo-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-label="Agent evals logo">
+            <path d="M8 22V10l8-4 8 4v12l-8 4-8-4Z"></path>
+            <path d="M12 16h8M16 12v8"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="logo-title">Agent Evals</div>
+          <div class="muted text-sm">Intent, tools, grounding, quality</div>
+        </div>
+      </div>
+
+      <nav class="nav-group" aria-label="Views">
+        <div class="section-label">Views</div>
+        <button class="nav-item active" data-view-btn="workspace">Workspace</button>
+        <button class="nav-item" data-view-btn="schema">Trace schema</button>
+        <button class="nav-item" data-view-btn="prompting">Judge prompt</button>
+      </nav>
+
+      <section class="nav-group" aria-label="Checks">
+        <div class="section-label">Checks</div>
+        <div class="chips">
+          <span class="chip">Intent fit</span>
+          <span class="chip">Tool correctness</span>
+          <span class="chip">Retrieval grounding</span>
+          <span class="chip">Response quality</span>
+        </div>
+      </section>
+
+      <section class="callout">
+        <div class="callout-title">How it works</div>
+        <p class="muted text-sm">Paste an agent run, add system prompt and task context, then run a structured rubric judge. Use the built-in heuristic evaluator or connect an OpenAI-compatible endpoint.</p>
+      </section>
+    </aside>
+
+    <header class="topbar">
+      <div>
+        <div class="section-label">Agent run evaluator</div>
+        <h1 class="page-title">Trace-aware eval dashboard</h1>
+      </div>
+      <div class="toolbar">
+        <button class="btn btn-ghost" id="themeToggle" type="button">Theme</button>
+        <button class="btn btn-secondary" id="loadExampleBtn" type="button">Load example</button>
+        <button class="btn btn-primary" id="runEvalBtn" type="button">Run eval</button>
+      </div>
+    </header>
+
+    <main class="main-grid" id="main-content">
+      <section class="workspace-stack" id="view-workspace">
+        <section class="panel" aria-labelledby="inputs-title">
+          <div class="panel-header">
+            <div>
+              <h2 id="inputs-title" class="panel-title">Inputs</h2>
+              <p class="muted text-sm">Everything the judge needs to determine whether the right action was taken.</p>
+            </div>
+          </div>
+          <div class="panel-body stack-lg">
+            <div class="field-grid two-col">
+              <label class="field">
+                <span>Run name</span>
+                <input id="runName" placeholder="Support triage agent — refund request" />
+              </label>
+              <label class="field">
+                <span>Judge mode</span>
+                <select id="judgeMode">
+                  <option value="heuristic">Built-in heuristic judge</option>
+                  <option value="llm">External LLM API</option>
+                </select>
+              </label>
+            </div>
+
+            <label class="field">
+              <span>User task / expected outcome</span>
+              <textarea id="userTask" placeholder="Describe the task, success criteria, and the kind of action the agent should take."></textarea>
+            </label>
+
+            <div class="field-grid two-col">
+              <label class="field">
+                <span>System prompt</span>
+                <textarea id="systemPrompt" placeholder="Paste the agent's full system prompt."></textarea>
+              </label>
+              <label class="field">
+                <span>Context provided to the agent</span>
+                <textarea id="agentContext" placeholder="Paste retrieval snippets, conversation history, tool outputs, memory, policies, or environment context."></textarea>
+              </label>
+            </div>
+
+            <section class="trace-dropzone stack-md">
+              <div>
+                <h3 class="panel-subtitle">Trace input</h3>
+                <p class="muted text-sm">Paste JSON that includes messages, tool calls, tool results, retrieved documents, and the final response.</p>
+              </div>
+              <textarea id="traceInput" spellcheck="false" class="trace-textarea"></textarea>
+              <div class="field-grid two-col">
+                <label class="field">
+                  <span>OpenAI-compatible endpoint</span>
+                  <input id="apiBase" placeholder="https://api.openai.com/v1" />
+                </label>
+                <label class="field">
+                  <span>Model</span>
+                  <input id="apiModel" placeholder="gpt-4.1-mini or your eval model" />
+                </label>
+              </div>
+              <label class="field">
+                <span>API key</span>
+                <input id="apiKey" type="password" placeholder="Optional, only used for external LLM judging" />
+              </label>
+            </section>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="summary-title">
+          <div class="panel-header">
+            <div>
+              <h2 id="summary-title" class="panel-title">Run summary</h2>
+              <p class="muted text-sm">Auto-derived from the trace once you run the eval.</p>
+            </div>
+            <span class="grade" id="overallGrade">Not run</span>
+          </div>
+          <div class="panel-body stack-lg">
+            <section class="kpi-grid" id="kpiGrid"></section>
+            <section class="trace-list" id="tracePreview" aria-label="Trace preview"></section>
+          </div>
+        </section>
+      </section>
+
+      <section class="results-stack" id="results-column">
+        <section class="panel" aria-labelledby="scores-title">
+          <div class="panel-header">
+            <div>
+              <h2 id="scores-title" class="panel-title">Scores</h2>
+              <p class="muted text-sm">Each category is scored 0–5 with evidence.</p>
+            </div>
+          </div>
+          <div class="panel-body stack-lg">
+            <section class="score-grid" id="scoreGrid"></section>
+            <aside class="callout soft">
+              <div class="callout-title">Decision rule</div>
+              <p class="muted text-sm">The judge checks whether the trace, context, and system prompt support the chosen action. Low grounding or wrong tool use can fail the run even if the final answer sounds good.</p>
+            </aside>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="findings-title">
+          <div class="panel-header">
+            <div>
+              <h2 id="findings-title" class="panel-title">Detailed findings</h2>
+              <p class="muted text-sm">What worked, what failed, and what to change.</p>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div id="rubricFindings"></div>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="output-title">
+          <div class="panel-header">
+            <div>
+              <h2 id="output-title" class="panel-title">Judge output</h2>
+              <p class="muted text-sm">Structured JSON and readable report.</p>
+            </div>
+          </div>
+          <div class="panel-body stack-lg">
+            <textarea id="jsonOutput" spellcheck="false" class="output-textarea"></textarea>
+            <article class="result-markdown" id="reportOutput"></article>
+          </div>
+        </section>
+      </section>
+
+      <section class="panel hidden" id="view-schema">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Recommended trace schema</h2>
+            <p class="muted text-sm">Use this shape to get the best eval signal.</p>
+          </div>
+        </div>
+        <div class="panel-body stack-md">
+          <pre class="code-block" id="schemaBlock"></pre>
+          <p class="muted">Store both the raw trace and any normalized fields such as <code>expected_tool</code> or <code>expected_intent</code>. The app uses them when present, but can infer from the run if they are missing.</p>
+        </div>
+      </section>
+
+      <section class="panel hidden" id="view-prompting">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Judge prompt template</h2>
+            <p class="muted text-sm">Used when external LLM mode is enabled.</p>
+          </div>
+        </div>
+        <div class="panel-body stack-md">
+          <textarea id="judgePromptTemplate" class="prompt-textarea"></textarea>
+          <p class="muted">The model should return strict JSON with category scores, evidence, and improvement actions.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

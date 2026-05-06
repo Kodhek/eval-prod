@@ -1,0 +1,30 @@
+export function getDom() {
+  return {
+    runName: document.getElementById('runName'),
+    userTask: document.getElementById('userTask'),
+    systemPrompt: document.getElementById('systemPrompt'),
+    agentContext: document.getElementById('agentContext'),
+    traceInput: document.getElementById('traceInput'),
+    apiBase: document.getElementById('apiBase'),
+    apiKey: document.getElementById('apiKey'),
+    apiModel: document.getElementById('apiModel'),
+    judgeMode: document.getElementById('judgeMode'),
+    jsonOutput: document.getElementById('jsonOutput'),
+    reportOutput: document.getElementById('reportOutput'),
+    scoreGrid: document.getElementById('scoreGrid'),
+    rubricFindings: document.getElementById('rubricFindings'),
+    tracePreview: document.getElementById('tracePreview'),
+    overallGrade: document.getElementById('overallGrade'),
+    judgePromptTemplate: document.getElementById('judgePromptTemplate'),
+    schemaBlock: document.getElementById('schemaBlock'),
+    kpiGrid: document.getElementById('kpiGrid'),
+    runEvalBtn: document.getElementById('runEvalBtn'),
+    loadExampleBtn: document.getElementById('loadExampleBtn'),
+    themeToggle: document.getElementById('themeToggle'),
+    navButtons: [...document.querySelectorAll('[data-view-btn]')],
+    workspaceView: document.getElementById('view-workspace'),
+    resultsView: document.getElementById('results-column'),
+    schemaView: document.getElementById('view-schema'),
+    promptingView: document.getElementById('view-prompting')
+  };
+}
